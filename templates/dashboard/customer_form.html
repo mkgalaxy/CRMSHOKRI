@@ -1,0 +1,440 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title|default:"ثبت / ویرایش اطلاعات مشتری" }} - فروشگاه بی‌نظیر</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" />
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    
+    <!-- jQuery & Select2 CSS / JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <style>
+        .select2-container--default .select2-selection--multiple,
+        .select2-container--default .select2-selection--single {
+            background-color: rgba(24, 15, 41, 0.8) !important;
+            border: 1px solid rgba(139, 92, 246, 0.3) !important;
+            border-radius: 0.75rem !important;
+            min-height: 42px !important;
+            color: #f1f5f9 !important;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #f1f5f9 !important;
+            line-height: 40px !important;
+        }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice {
+            background-color: #7c3aed !important;
+            border: none !important;
+            color: #ffffff !important;
+            border-radius: 0.5rem !important;
+            padding: 2px 8px !important;
+        }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+            color: #ffffff !important;
+            margin-left: 5px !important;
+        }
+        .select2-dropdown {
+            background-color: #1a102f !important;
+            border: 1px solid rgba(139, 92, 246, 0.4) !important;
+            border-radius: 0.75rem !important;
+            color: #f1f5f9 !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+        }
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: #6d28d9 !important;
+            color: #ffffff !important;
+        }
+        .select2-search__field {
+            background-color: #120924 !important;
+            color: #f1f5f9 !important;
+            border-radius: 0.5rem !important;
+        }
+    </style>
+</head>
+<body class="dark-purple-theme text-slate-100 min-h-screen font-sans antialiased selection:bg-purple-500 selection:text-white pb-10">
+
+    {% include "header.html" %}
+
+    <main class="container mx-auto px-3 md:px-6 my-6 max-w-5xl space-y-6">
+
+        <div class="card-dark flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-base md:text-xl font-black text-purple-100 flex items-center gap-2">
+                    <span>📝</span>
+                    <span>{{ title|default:"ثبت / ویرایش اطلاعات مشتری" }}</span>
+                </h1>
+                <p class="text-xs text-purple-300/70 mt-1">اطلاعات مشتری، وضعیت مالی و برنامه‌ریزی پیگیری‌ها را وارد نمایید.</p>
+            </div>
+            <a href="{% url 'customer_list' %}" class="w-full sm:w-auto text-center inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-purple-950/40 transition">
+                <span>بازگشت به لیست مشتریان</span>
+                <span>↩️</span>
+            </a>
+        </div>
+
+        <div id="form-errors" class="hidden p-4 bg-rose-950/40 border border-rose-800/50 rounded-2xl text-rose-300 text-xs font-semibold shadow-sm">
+            <p class="font-bold mb-2">لطفاً خطاهای زیر را برطرف کنید:</p>
+            <ul id="errors-list" class="list-disc list-inside space-y-1"></ul>
+        </div>
+
+        <div class="card-dark p-6 md:p-8 space-y-6">
+            <form method="post" id="customer-main-form" class="space-y-6">
+                {% csrf_token %}
+
+                <!-- ۱. مشخصات فردی -->
+                <div class="bg-purple-950/30 p-5 rounded-2xl border border-purple-900/40 space-y-4">
+                    <h2 class="font-bold text-purple-200 border-b border-purple-900/40 pb-2 text-xs md:text-sm flex items-center gap-2">
+                        <span>👤</span>
+                        <span>مشخصات فردی و مسئول</span>
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-purple-200 mb-2">نام و نام خانوادگی <span class="text-rose-400">*</span></label>
+                            {{ form.full_name }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-purple-200 mb-2">شماره تماس <span class="text-rose-400">*</span></label>
+                            {{ form.phone }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-purple-200 mb-2">نام فروشنده مسئول</label>
+                            {{ form.seller_name }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-purple-200 mb-2">تولیدکنندگان مدنظر (چند انتخابی)</label>
+                            {{ form.suppliers }}
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold text-purple-200 mb-2">محصولات مورد علاقه (فیلتر بر اساس تولیدکننده)</label>
+                            {{ form.interested_products }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-purple-200 mb-2">کد / مدل محصول</label>
+                            {{ form.product_code }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ۲. ارزیابی مالی و وضعیت -->
+                <div class="bg-purple-950/30 p-5 rounded-2xl border border-purple-900/40 space-y-4">
+                    <h2 class="font-bold text-purple-200 border-b border-purple-900/40 pb-2 text-xs md:text-sm flex items-center gap-2">
+                        <span>📊</span>
+                        <span>وضعیت و ارزیابی مالی</span>
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-purple-200 mb-2">وضعیت مشتری</label>
+                            {{ form.status }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-purple-200 mb-2">اولویت</label>
+                            {{ form.priority }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-purple-200 mb-2">مبلغ احتمالی (تومان)</label>
+                            {{ form.potential_amount }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-purple-200 mb-2">احتمال خرید (درصد)</label>
+                            {{ form.purchase_probability }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ۳. زمان‌بندی پیگیری‌ها -->
+                <div class="bg-purple-950/30 p-5 rounded-2xl border border-purple-900/40 space-y-4">
+                    <h2 class="font-bold text-purple-200 border-b border-purple-900/40 pb-2 text-xs md:text-sm flex items-center gap-2">
+                        <span>📅</span>
+                        <span>زمان‌بندی و پیگیری‌ها</span>
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-purple-200 mb-2">روش پیگیری</label>
+                            {{ form.followup_method }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-purple-200 mb-2">آخرین اقدام انجام شده</label>
+                            {{ form.last_action }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-purple-200 mb-2">تاریخ آخرین پیگیری (شمسی)</label>
+                            {{ form.last_followup_jdate }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-purple-200 mb-2">تاریخ پیگیری بعدی (شمسی)</label>
+                            {{ form.next_followup_jdate }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ۴. یادداشت و انصراف -->
+                <div class="bg-purple-950/30 p-5 rounded-2xl border border-purple-900/40 space-y-4">
+                    <h2 class="font-bold text-purple-200 border-b border-purple-900/40 pb-2 text-xs md:text-sm flex items-center gap-2">
+                        <span>📝</span>
+                        <span>توضیحات و دلایل عدم خرید</span>
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-purple-200 mb-2">توضیحات و یادداشت‌ها</label>
+                            {{ form.notes }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-purple-200 mb-2">دلیل عدم خرید / انصراف</label>
+                            {{ form.lost_reason }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-5 border-t border-purple-900/40">
+                    <a href="{% url 'customer_list' %}" class="px-5 py-2.5 text-xs font-bold text-purple-300 hover:text-white rounded-xl hover:bg-purple-900/40 transition">
+                        انصراف
+                    </a>
+                    <button type="submit" class="px-6 py-2.5 text-xs font-bold text-white bg-purple-600 hover:bg-purple-500 rounded-xl shadow-lg shadow-purple-950/50 transition flex items-center gap-1.5">
+                        <span>💾</span>
+                        <span>ذخیره اطلاعات مشتری و ثبت سفارش</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- پاپ‌آپ (Modal) ثبت سریع سفارش با اصلاح نام مسیر به order_add -->
+    <div id="order-modal" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="card-dark w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 space-y-5 border border-purple-800/60 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-purple-900/50 pb-3">
+                <h3 class="text-base font-bold text-purple-100 flex items-center gap-2">
+                    <span>📦</span>
+                    <span id="modal-title">ثبت سفارش سریع برای مشتری</span>
+                </h3>
+                <button type="button" onclick="closeOrderModal()" class="text-purple-400 hover:text-rose-400 font-bold text-xl">✕</button>
+            </div>
+
+            <form method="POST" action="{% url 'order_add' %}" id="modal-order-form" class="space-y-5">
+                {% csrf_token %}
+                <input type="hidden" name="customer" id="modal_customer_id">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-purple-200 mb-2">تولیدکننده / کارگاه (چندانتخابی)</label>
+                        <select name="supplier" id="modal_supplier" multiple="multiple" class="w-full"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-purple-200 mb-2">محصول انتخابی (چندانتخابی)</label>
+                        <select name="product" id="modal_product" multiple="multiple" class="w-full"></select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-purple-200 mb-2">کد / مدل محصول *</label>
+                        <input type="text" name="product_name" id="modal_product_name" required class="dark-input w-full">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-purple-200 mb-2">کد سفارش / شماره بارنامه</label>
+                        <input type="text" name="order_code" id="modal_order_code" placeholder="ORD-1001" class="dark-input w-full">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-purple-200 mb-2">مبلغ کل (تومان) *</label>
+                        <input type="text" name="total_amount" id="modal_total_amount" required class="dark-input w-full price-input">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-purple-200 mb-2">پیش‌پرداخت دریافت شده (تومان)</label>
+                        <input type="text" name="paid_amount" id="modal_paid_amount" class="dark-input w-full price-input">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-purple-200 mb-2">وضعیت سفارش</label>
+                        <select name="status" id="modal_status" class="dark-input w-full">
+                            <option value="REGISTERED">سفارش ثبت شد</option>
+                            <option value="SENT_TO_SUPPLIER">سفارش برای تولیدکننده ارسال شد</option>
+                            <option value="IN_PRODUCTION">در حال تولید</option>
+                            <option value="READY_TO_SHIP">آماده ارسال</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-purple-200 mb-2">تاریخ احتمالی آماده شدن (شمسی)</label>
+                        <input type="text" name="expected_ready_jdate" placeholder="1405-05-20" class="dark-input w-full">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-purple-200 mb-2">جزئیات و نکات فنی سفارش</label>
+                    <textarea name="description" rows="3" class="dark-input w-full" placeholder="توضیحات تکمیلی..."></textarea>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-3 border-t border-purple-900/40">
+                    <button type="button" onclick="closeOrderModal()" class="px-4 py-2 text-xs font-bold text-purple-300 hover:text-white rounded-xl">انصراف</button>
+                    <button type="submit" class="px-6 py-2.5 text-xs font-bold text-white bg-purple-600 hover:bg-purple-500 rounded-xl shadow-lg">ثبت و نهایی‌سازی سفارش</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function closeOrderModal() {
+            $('#order-modal').addClass('hidden');
+        }
+
+        $(document).ready(function() {
+            const $suppliersSelect = $('#id_customer_suppliers').select2({
+                placeholder: 'انتخاب یک یا چند تولیدکننده...',
+                allowClear: true,
+                width: '100%',
+                dir: "rtl"
+            });
+
+            const $productsSelect = $('#id_customer_interested_products').select2({
+                placeholder: 'انتخاب یک یا چند محصول...',
+                allowClear: true,
+                width: '100%',
+                dir: "rtl"
+            });
+
+            const $modalSupplier = $('#modal_supplier').select2({
+                placeholder: 'انتخاب کارگاه‌ها...',
+                width: '100%',
+                dir: "rtl"
+            });
+
+            const $modalProduct = $('#modal_product').select2({
+                placeholder: 'انتخاب محصولات...',
+                width: '100%',
+                dir: "rtl"
+            });
+
+            let currentProductsData = {};
+
+            $suppliersSelect.on('change', function() {
+                const selectedSupplierIds = $(this).val();
+
+                $.ajax({
+                    url: "{% url 'get_products_by_suppliers' %}",
+                    data: { 'supplier_ids': selectedSupplierIds },
+                    success: function(response) {
+                        const previousSelectedProducts = $productsSelect.val() || [];
+                        $productsSelect.empty();
+                        currentProductsData = {};
+
+                        response.products.forEach(function(prod) {
+                            const prodCode = prod.code ? prod.code : prod.name;
+                            currentProductsData[prod.id] = prodCode;
+                            
+                            const optionText = `${prod.name} (${prod.supplier__name}) ${prod.code ? '- کد: ' + prod.code : ''}`;
+                            const isSelected = previousSelectedProducts.includes(prod.id.toString());
+                            
+                            const newOption = new Option(optionText, prod.id, isSelected, isSelected);
+                            $productsSelect.append(newOption);
+                        });
+
+                        $productsSelect.trigger('change.select2');
+                    }
+                });
+            });
+
+            $productsSelect.on('change', function() {
+                const selectedProductIds = $(this).val() || [];
+                let codes = [];
+
+                selectedProductIds.forEach(function(id) {
+                    if (currentProductsData[id]) {
+                        codes.push(currentProductsData[id]);
+                    }
+                });
+
+                if (codes.length > 0) {
+                    $('#id_product_code').val(codes.join(' ، '));
+                }
+            });
+
+            // ارسال فرم مشتری به صورت Ajax و باز شدن فوری پاپ‌آپ ثبت سفارش
+            $('#customer-main-form').on('submit', function(e) {
+                e.preventDefault();
+                const formData = $(this).serialize();
+
+                $.ajax({
+                    url: "{% url 'customer_add' %}",
+                    type: "POST",
+                    data: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function(response) {
+                        if (response.success) {
+                            // مقداردهی شناسه مشتری در فرم پاپ‌آپ
+                            $('#modal_customer_id').val(response.customer.id);
+                            $('#modal-title').text(`ثبت سفارش برای «${response.customer.full_name}»`);
+
+                            // اضافه و انتخاب کردن تولیدکنندگان مشتری در پاپ‌آپ
+                            $modalSupplier.empty();
+                            let supIds = [];
+                            if (response.customer.suppliers && response.customer.suppliers.length > 0) {
+                                response.customer.suppliers.forEach(sup => {
+                                    $modalSupplier.append(new Option(sup.name, sup.id, true, true));
+                                    supIds.push(sup.id.toString());
+                                });
+                                $modalSupplier.val(supIds).trigger('change.select2');
+                            }
+
+                            // اضافه و انتخاب کردن محصولات مشتری در پاپ‌آپ
+                            $modalProduct.empty();
+                            let prodIds = [];
+                            let codes = [];
+                            if (response.customer.products && response.customer.products.length > 0) {
+                                response.customer.products.forEach(prod => {
+                                    $modalProduct.append(new Option(`${prod.name} (کد: ${prod.code})`, prod.id, true, true));
+                                    prodIds.push(prod.id.toString());
+                                    if(prod.code) codes.push(prod.code);
+                                });
+                                $modalProduct.val(prodIds).trigger('change.select2');
+                            }
+
+                            // تنظیم کد محصول و مبلغ کل
+                            $('#modal_product_name').val(codes.join(' ، ') || response.customer.product_code || '');
+                            if (response.customer.potential_amount) {
+                                $('#modal_total_amount').val(Number(response.customer.potential_amount).toLocaleString('en-US'));
+                            }
+
+                            // باز شدن پاپ‌آپ
+                            $('#order-modal').removeClass('hidden');
+                        } else {
+                            $('#form-errors').removeClass('hidden');
+                            $('#errors-list').empty();
+                            for (let field in response.errors) {
+                                $('#errors-list').append(`<li>${field}: ${response.errors[field]}</li>`);
+                            }
+                        }
+                    }
+                });
+            });
+
+            document.querySelectorAll('input, select, textarea').forEach(el => {
+                if (
+                    el.type !== 'hidden' && 
+                    el.type !== 'submit' && 
+                    !el.classList.contains('select2-search__field') &&
+                    !el.classList.contains('select2-hidden-accessible')
+                ) {
+                    el.classList.add('dark-input');
+                }
+            });
+
+            $(document).on('input', '.price-input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value) {
+                    e.target.value = Number(value).toLocaleString('en-US');
+                } else {
+                    e.target.value = '';
+                }
+            });
+        });
+    </script>
+    <script src="{% static 'js/dashboard.js' %}"></script>
+</body>
+</html>
